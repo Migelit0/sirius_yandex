@@ -1,4 +1,5 @@
 from math import inf
+from sys import argv
 
 
 def correct_word(my_word: str, right_word: str) -> str:
@@ -68,10 +69,17 @@ def main():
             dictionary.append(file.readline().split()[0])
 
     with open('asd.txt', 'w', encoding='utf-8') as out_file:
-        with open('queries.txt', 'r', encoding='utf-8') as file:
-            for _ in range(100000):
+        with open(file_name, 'r', encoding='utf-8') as file:
+            for _ in range(10000):
                 word = file.readline().split()[0]
-                dict_word, corrections = get_best(word, dictionary)
+                dict_word, first_corrections = get_best(word, dictionary)
+                dict_word, second_corrections = get_best(word[::-1], dictionary[::-1])
+                
+                if len(first_corrections) < len(second_corrections):
+                    corrections = first_corrections
+                else:
+                    corrections = [elem[::-1] for elem in second_corrections]
+
                 init_word = word[:]
 
                 if len(corrections) == 0:
@@ -88,4 +96,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    file_name = argv[1]
+    main(file_name)
