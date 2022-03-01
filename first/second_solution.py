@@ -3,7 +3,7 @@ from sys import argv
 
 
 def correct_word(my_word: str, right_word: str) -> str:
-    """ Получаем из одного слова второе (казалось бы контрпримера нет) """
+    """ Получаем из одного слова второе (казалось бы контрпримера нет (а нет есть брух)) """
 
     my_word = ' ' + my_word + ' '
     right_word = ' ' + right_word + ' '
@@ -74,7 +74,7 @@ def main():
                 word = file.readline().split()[0]
                 dict_word, first_corrections = get_best(word, dictionary)
                 dict_word, second_corrections = get_best(word[::-1], dictionary[::-1])
-                
+
                 if len(first_corrections) < len(second_corrections):
                     corrections = first_corrections
                 else:

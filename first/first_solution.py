@@ -5,48 +5,74 @@ ALPHABET_SIZE = 32
 import numpy as np
 
 
-def levenshtein_ratio_and_distance(s, t, ratio_calc=False): # https://www.datacamp.com/community/tutorials/fuzzy-string-python
-    """ levenshtein_ratio_and_distance:
-        Calculates levenshtein distance between two strings.
-        If ratio_calc = True, the function computes the
-        levenshtein distance ratio of similarity between two strings
-        For all i and j, distance[i,j] will contain the Levenshtein
-        distance between the first i characters of s and the
-        first j characters of t
-    """
-    # Initialize matrix of zeros
-    rows = len(s) + 1
-    cols = len(t) + 1
-    distance = np.zeros((rows, cols), dtype=int)
+class Vector:
+    """ Математического вектора """
 
-    # Populate matrix of zeros with the indeces of each character of both strings
+    def __init__(self, word: str, coords: list, is_word=True):
+        self.coords = [0] * ALPHABET_SIZE
+
+        if is_word:
+            self.word = word
+            self.update_coords()
+        else:
+            self.coords = coords
+
+    def update_coords(self):
+        for letter in self.word:
+            try:
+                self.coords[ord(letter) - 1072] += 1
+            except Exception:
+                pass
+
+    def __abs__(self):
+        """ Модуль вектора """
+        return sqrt(sum([x ** 2 for x in self.coords]))
+
+    def __mul__(self, other):
+        """ Перемножение двух векторов """
+        new_coords = [0] * ALPHABET_SIZE
+
+        for i in range(ALPHABET_SIZE):
+            new_coords[i] = self.coords[i] * other.coords[i]
+
+        return sum(new_coords)
+
+    def __xor__(self, other):
+        """ Находим косинус между двумя векторами """
+        return abs(self * other) / (abs(self) * abs(other))
+
+
+def levenshtein_ratio_and_distance(s, t, ratio_calc=False):
+    # https://www.datacamp.com/community/tutorials/fuzzy-string-python
+    # потому что впадлу самому в матрицах разбираться брух
+
+    rows = len(s)
+    cols = len(t)
+    distance = np.zeros((rows + 1, cols + 1), dtype=int)
+
     for i in range(1, rows):
         for k in range(1, cols):
             distance[i][0] = i
             distance[0][k] = k
 
-    # Iterate over the matrix to compute the cost of deletions,insertions and/or substitutions
     for col in range(1, cols):
         for row in range(1, rows):
             if s[row - 1] == t[col - 1]:
-                cost = 0  # If the characters are the same in the two strings in a given position [i,j] then the cost is 0
             else:
-                # In order to align the results with those of the Python Levenshtein package, if we choose to calculate the ratio
-                # the cost of a substitution is 2. If we calculate just distance, then the cost of a substitution is 1.
                 if ratio_calc == True:
                     cost = 2
                 else:
                     cost = 1
-            distance[row][col] = min(distance[row - 1][col] + 1,  # Cost of deletions
-                                     distance[row][col - 1] + 1,  # Cost of insertions
-                                     distance[row - 1][col - 1] + cost)  # Cost of substitutions
+            distance[row][col] = min(distance[row - 1][col] + 1, distance[row][col - 1] + 1,
+                                     distance[row - 1][col - 1] + cost)
 
-    Ratio = ((len(s) + len(t)) - distance[row][col]) / (len(s) + len(t))
+    ratio = ((len(s) + len(t)) - distance[row][col]) / (len(s) + len(t))
 
-    return Ratio, distance[row][col]
+    return ratio, distance[row][col]
 
 
 def read_dictionary(file_name: str):
+    """ Читаем весь словарь в виду векторов """
     words = []
 
     with open(file_name, 'r', encoding='utf-8') as file:
@@ -83,7 +109,7 @@ def find_nearest_by_levenshtein(request: str, dictionary: list):
 
 
 def main(file_name: str):
-    """ Решение через расстояние Левинштейна """
+    """ Решение через расстояние Левенштейна """
     dictionary = read_dictionary('dict.txt')
 
     with open(f'{file_name}.out', 'w', encoding='utf-8') as out_file:
